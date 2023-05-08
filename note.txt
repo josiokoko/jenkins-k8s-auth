@@ -1,0 +1,37 @@
+Configuring kubectl in Jenkins for Continuous Deployment
+
+Step1: Create a serviceaccount for Jenkins to interact with k8s cluster
+	- This can be in the default namespace or a dedicated namespace for your workloads
+
+		sa.yaml
+
+
+Step2: create a long-lived API token for the ServiceAccount
+
+		sec.yaml
+
+Step3: Get the secret token for the jenkins serviceaccount
+		kubectl get secret jenkin-secret -o yaml
+		kubectl describe secret jenkins-secret
+
+Step4: Set up RBAC for the jenkins service account
+	- Grant jenkins serviceaccount a cluster-admin role
+	- Create a clusterrolebinding for jenkins serviceaccount as the subject and cluster-admin as the role
+	- Note we are not going to create a CusterRole object because we are using the default cluster-admin role
+
+		newcrb.yaml
+
+Step5: Head back to Jenkins build server to create a credential for Jenkins to authenticate to our cluster using the jenkins serviceaccount
+	- Create a secret text credentials in Jenkins
+	- Enter the secret token of the jenkins service account you obtained in step3
+	- Give it appropriate name
+
+Step6: complete the Pipeline syntax to obtaine the necessary code
+	- make sure you install the Kubernetes CLI under manage plugins
+	- Kubernetes CLI (https://plugins.jenkins.io/kubernetes-cli/)
+	- select withKubeConfig
+	- enter Api Server url (endpoint)
+		kubectl cluster-info
+
+
+ 
