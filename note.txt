@@ -34,4 +34,32 @@ Step6: complete the Pipeline syntax to obtaine the necessary code
 		kubectl cluster-info
 
 
- 
+Pull the Docker Image from AWS ECR in Kubernetes
+
+	- Normally when we want to pull the images from AWS ECR to our localhost, we need to log in using the following command to gain access
+
+	aws ecr get-login-password --region region | docker login --username AWS --password-stdin aws_account_id.dkr.ecr.region.amazonaws.com
+
+	- Within Kubernetes, we need to configure a few more steps so it can pull the image properly when starting new pods
+	- According to the official documentation from Kubernetes, we have to create new secret which contains the data called ‘.dockerconfigjson’
+	- kubectl create secret docker-registry regcred --docker-server=<your-registry-server> --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your email>
+
+	kubectl create secret docker-registry regcred --docker-server=${registry_id}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com --docker-username=AWS --docker-password=$(aws ecr get-login-password)
+
+	- Finally, Finally, under the Pod spec of your deployment YAML file, define the secret name within imagePullSecrets
+template:
+    metadata:
+      labels:
+        app: app-name
+    spec:
+      containers:
+        - name: app
+          image: <image>
+      imagePullSecrets:
+        - name: regcred
+
+
+
+
+
+
